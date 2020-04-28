@@ -8,4 +8,6 @@
     <string name="wear">穿衣</string>
     <string name="now">实时紫外线</string>
     <string name="wash_car">洗车</string>
+    <string name="service_settings">后台设置</string>
+    <string name="auto">后台自动更新天气</string>
 </resources>

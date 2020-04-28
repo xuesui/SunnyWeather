@@ -21,6 +21,19 @@ object PlaceDao {
 
     fun isPlaceSaved() = sharedPreferences().contains("place")
 
+    fun saveUpdate(isChecked:Boolean){
+        sharedPreferences().edit{
+            putBoolean("update",isChecked)
+        }
+    }
+
+    fun getSavedUpdate():Boolean{
+        val isChecked= sharedPreferences().getBoolean("update",false)
+        return isChecked
+    }
+
+    fun isUpdateSaved()= sharedPreferences().contains("update")
+
     private fun sharedPreferences() = SunnyWeatherApplication.context
         .getSharedPreferences("sunny_weather", Context.MODE_PRIVATE)
 }

@@ -1,11 +1,19 @@
 package com.example.sunnyweather.ui.weather
 
+import android.app.usage.UsageEvents
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.graphics.Color
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.IBinder
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
@@ -17,18 +25,26 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.sunnyweather.R
+import com.example.sunnyweather.logic.EventMessage
 import com.example.sunnyweather.logic.model.Weather
 import com.example.sunnyweather.logic.model.getSky
+import com.example.sunnyweather.logic.service.AutoRefreshService
+import com.example.sunnyweather.ui.settings.SettingsActivity
 import kotlinx.android.synthetic.main.activity_weather.*
 import kotlinx.android.synthetic.main.forecast.*
 import kotlinx.android.synthetic.main.life_index.*
 import kotlinx.android.synthetic.main.now.*
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 import java.text.SimpleDateFormat
 import java.util.*
 
 class WeatherActivity : AppCompatActivity() {
 
     val viewmodel by lazy { ViewModelProvider(this).get(WeatherViewModel::class.java) }
+
+
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +56,16 @@ class WeatherActivity : AppCompatActivity() {
         window.statusBarColor = Color.TRANSPARENT
 
         setContentView(R.layout.activity_weather)
+
+        EventBus.getDefault().register(this)
+
+        setSupportActionBar(toolbar)
+        supportActionBar?.let {
+            it.setDisplayHomeAsUpEnabled(true)
+            it.setHomeAsUpIndicator(R.drawable.ic_home)
+            it.setDisplayShowTitleEnabled(false)
+        }
+
         if (viewmodel.locationLng.isEmpty()) {
             viewmodel.locationLng = intent.getStringExtra("location_lng") ?: ""
         }
@@ -65,9 +91,6 @@ class WeatherActivity : AppCompatActivity() {
             refreshWeather()
         }
 
-        navBtn.setOnClickListener {
-            drawerLayout.openDrawer(GravityCompat.START)
-        }
 
         drawerLayout.addDrawerListener(object : DrawerLayout.DrawerListener {
             override fun onDrawerStateChanged(newState: Int) {}
@@ -86,6 +109,22 @@ class WeatherActivity : AppCompatActivity() {
         })
     }
 
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.toolbar, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.settings -> {
+                val intent = Intent(this, SettingsActivity::class.java)
+                startActivity(intent)
+            }
+            android.R.id.home -> drawerLayout.openDrawer(GravityCompat.START)
+        }
+        return true
+    }
 
     fun refreshWeather() {
         viewmodel.refreshWeather(viewmodel.locationLng, viewmodel.locationLat)
@@ -131,5 +170,29 @@ class WeatherActivity : AppCompatActivity() {
         ultravioletText.text = lifeIndex.ultraviolet[0].desc
         carWashingText.text = lifeIndex.carWashing[0].desc
         weatherLayout.visibility = View.VISIBLE
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun autoUpdate(message: EventMessage) {
+        when (message.message) {
+            "StartService" -> {
+                val intent = Intent(this, AutoRefreshService::class.java)
+                startService(intent)
+            }
+            "StopService" -> {
+                val intent = Intent(this, AutoRefreshService::class.java)
+                stopService(intent)
+            }
+            "refresh"->{
+                Log.d("Time:","refresh")
+                refreshWeather()
+            }
+        }
+    }
+
+
+    override fun onDestroy() {
+        EventBus.getDefault().unregister(this)
+        super.onDestroy()
     }
 }

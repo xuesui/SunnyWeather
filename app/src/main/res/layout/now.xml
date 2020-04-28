@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nowLayout"
     android:layout_width="match_parent"
     android:layout_height="530dp"
@@ -12,14 +13,15 @@
         android:id="@+id/titleLayout"
         android:fitsSystemWindows="true">
 
-        <Button
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:id="@+id/navBtn"
-            android:layout_marginStart="15dp"
-            android:layout_gravity="center_vertical"
-            android:background="@drawable/ic_home"
-            android:layout_marginLeft="15dp" />
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+            app:layout_scrollFlags="scroll|enterAlways|snap"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+
 
         <TextView
             android:layout_width="wrap_content"
